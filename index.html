@@ -768,8 +768,11 @@ window.addEventListener('scroll',function(){
 },{passive:true});
 
 function ctBadge(tid){
-  var ct=(window.CTMAP&&window.CTMAP[tid])||null;
-  if(!ct||!ct.length) return '';
+  var all=(window.CTMAP&&window.CTMAP[tid])||null;
+  if(!all||!all.length) return '';
+  // 卡片上优先放号码，地址只在「这条帖子除了地址没别的号」时才顶上来（地址长，会把一行撑爆）
+  var ct=all.filter(function(f){return f.k!=='地址';});
+  if(!ct.length) ct=all.slice(0,1);
   var h='<div class="ctrow">';
   // 卡片最多显示 4 个，其余折成 +N（点进详情看全部）。堆十几个会把卡片撑爆。
   var MAXC=4;
