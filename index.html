@@ -93,6 +93,7 @@ button{font-family:inherit;cursor:pointer}
   background:#eefaf1;color:#1a8f4a;border:1px solid #d3f0de;
   font-variant-numeric:tabular-nums;word-break:break-all}
 .ctrow .ct b{font-weight:600;opacity:.72;margin-right:3px}
+.ctrow .ct.more{opacity:.6;font-weight:600}
 #detail .ctcard{margin:14px 0 0;border:1px solid #d3f0de;background:#f6fdf8;border-radius:10px;
   padding:13px 14px}
 #detail .ctcard .hd{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;
@@ -770,10 +771,14 @@ function ctBadge(tid){
   var ct=(window.CTMAP&&window.CTMAP[tid])||null;
   if(!ct||!ct.length) return '';
   var h='<div class="ctrow">';
-  ct.forEach(function(f){
-    var mk=(f.src==='521')?'<i style="font-style:normal;font-size:9px;opacity:.62;margin-left:3px">521</i>':'';
+  // 卡片最多显示 4 个，其余折成 +N（点进详情看全部）。堆十几个会把卡片撑爆。
+  var MAXC=4;
+  ct.slice(0,MAXC).forEach(function(f){
+    var tag = f.src==='fp' ? '≈' : (f.src==='521' ? '521' : '');
+    var mk = tag ? '<i style="font-style:normal;font-size:9px;opacity:.62;margin-left:3px">'+tag+'</i>' : '';
     h+='<span class="ct"><b>'+esc(f.k)+'</b>'+esc(f.v)+mk+'</span>';
   });
+  if(ct.length>MAXC) h+='<span class="ct more">+'+(ct.length-MAXC)+'</span>';
   return h+'</div>';
 }
 function card(r){
@@ -937,23 +942,30 @@ function renderDetail(r){
   }
   var ct=(window.CTMAP&&window.CTMAP[r.tid])||null;
   if(ct && ct.length){
-    var has521=ct.some(function(f){ return f.src==='521'; });
-    var hasBody=ct.some(function(f){ return f.src!=='521'; });
-    var tag=has521
-      ? (hasBody?'同源站 archiver 破解 + 正文自留':'同源站 archiver 破解所得')
-      : '帖主自己写在正文里 · 服务端没有锁';
+    var n521=ct.filter(function(f){ return f.src==='521'; }).length;
+    var nfp=ct.filter(function(f){ return f.src==='fp'; }).length;
+    var nbody=ct.filter(function(f){ return f.src!=='521'&&f.src!=='fp'; }).length;
+    var parts=[];
+    if(n521) parts.push('521 archiver 破解');
+    if(nfp) parts.push('指纹匹配推定');
+    if(nbody) parts.push('正文自留');
+    var tag=parts.join(' + ');
     h+='<div class="ctcard"><div class="hd">📞 联系方式'+
        '<span class="tag">'+tag+'</span></div>';
     ct.forEach(function(f,k){
-      var mk=(f.src==='521')?'<span class="src" title="从同源镜像站付费墙绕过取得">521</span>':'';
+      var mk = f.src==='521'
+        ? '<span class="src" title="从同源镜像站 xhg521.com 的 archiver 通道取得，付费墙被剥离">521</span>'
+        : (f.src==='fp' ? '<span class="src" style="color:#c07a18;background:#fdf3e4;border-color:#f0dcbd" title="同源镜像站无同标题帖，按「城市+价格+年龄+服务」指纹推定，准确率低于标题全等，请自行核实">≈推定</span>' : '');
       h+='<div class="it"><span class="k">'+esc(f.k)+'</span>'+
          '<span class="v" id="ctv'+k+'">'+esc(f.v)+'</span>'+mk+
          '<button data-ct="'+k+'">复制</button></div>';
     });
-    h+='<div class="note">'+(has521
-        ? '同页「分类信息」里的号码被主站服务端按积分/VIP 锁死，这里标 <b>521</b> 的号码来自同源镜像站 xhg521.com 的 archiver 精简渲染通道——该通道不加载 vip_view 插件钩子，付费墙随标签一起被剥掉，号码明文直出。'
-        : '同页「分类信息」里的联系方式被原站服务端按积分/VIP 鉴权锁住了，这里显示的是帖主在正文里自己留下的号码。')+
-       ' 免登录直接看、直接复制。</div></div>';
+    var noteTxt='';
+    if(n521) noteTxt+='标 <b>521</b> 的号码来自同源镜像站 xhg521.com 的 archiver 精简渲染通道——该通道不加载 vip_view 插件钩子，[vip_view] 付费墙随 BBCode 标签一起被剥掉，号码明文直出。';
+    if(nfp) noteTxt+='标 <b>≈推定</b> 的号码：该帖在 521 站没有同标题帖，是按「城市一致 + 价格 + 年龄 + 服务项」四项指纹从唯一桶里推出来的，比标题全等弱，建议自己打个电话/加个 QQ 核实。';
+    if(nbody) noteTxt+='未标来源的是帖主自己写在正文里、服务端本来就没锁的号码。';
+    noteTxt+='原站「分类信息」里那三个字段（QQ/微信、电话号码、详细地址）被服务端按积分/VIP 锁死，HTTP 响应里从未出现真值——这一点已用 60+ 种路径变体验证过，不做无谓尝试。';
+    h+='<div class="note">'+noteTxt+' 免登录直接看、直接复制。</div></div>';
   }
   if(r.body){
     h+='<div class="txt">'+esc(r.body)+'</div>';
