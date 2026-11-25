@@ -32,6 +32,9 @@ button{font-family:inherit;cursor:pointer}
 #hdr .logo{width:32px;height:32px;border-radius:9px;background:rgba(255,255,255,.94);flex:none;
   display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:var(--acc)}
 #hdr .brand{font-size:15px;font-weight:700;color:#fff;flex:none;letter-spacing:.5px}
+#hdr #ctNav{flex:none;font-size:12.5px;font-weight:700;color:#fff;text-decoration:none;
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:15px;padding:5px 11px;white-space:nowrap}
+#hdr #ctNav:active{background:rgba(255,255,255,.32)}
 #hdr .sbox{flex:1;min-width:0;height:34px;border-radius:18px;background:#fff;display:flex;align-items:center;
   gap:7px;padding:0 13px;max-width:520px}
 #hdr .sbox .ic{font-size:13px;opacity:.45;flex:none}
@@ -83,6 +86,30 @@ button{font-family:inherit;cursor:pointer}
 .card .Loc .Cover.none{display:none}
 .card .bdges{display:flex;gap:5px;flex:none}
 .card .bdges .b{font-size:10.5px;color:var(--acc);background:#ffeef4;border-radius:4px;padding:1px 5px}
+
+/* ── 联系方式（正文自带，服务端未锁） ── */
+.ctrow{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+.ctrow .ct{font-size:11.5px;line-height:1.5;padding:2px 7px;border-radius:5px;
+  background:#eefaf1;color:#1a8f4a;border:1px solid #d3f0de;
+  font-variant-numeric:tabular-nums;word-break:break-all}
+.ctrow .ct b{font-weight:600;opacity:.72;margin-right:3px}
+#detail .ctcard{margin:14px 0 0;border:1px solid #d3f0de;background:#f6fdf8;border-radius:10px;
+  padding:13px 14px}
+#detail .ctcard .hd{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;
+  color:#1a8f4a;margin-bottom:9px}
+#detail .ctcard .hd .tag{font-size:10.5px;font-weight:500;color:#4aa06c;background:#e2f6e9;
+  border-radius:4px;padding:1px 6px}
+#detail .ctcard .it{display:flex;align-items:center;gap:9px;padding:7px 0;border-top:1px dashed #dcefe3;
+  font-size:14.5px}
+#detail .ctcard .it:first-of-type{border-top:0}
+#detail .ctcard .it .k{flex:none;font-size:11.5px;color:#4aa06c;background:#e2f6e9;border-radius:4px;
+  padding:2px 7px;min-width:44px;text-align:center}
+#detail .ctcard .it .v{flex:1;min-width:0;color:#14713a;font-weight:600;
+  font-variant-numeric:tabular-nums;word-break:break-all;user-select:all}
+#detail .ctcard .it button{flex:none;background:#fff;border:1px solid #c9e8d4;color:#1a8f4a;
+  border-radius:6px;font-size:11.5px;padding:4px 10px}
+#detail .ctcard .it button:active{background:#e2f6e9}
+#detail .ctcard .note{margin-top:9px;font-size:11.5px;color:#8aa79a;line-height:1.6}
 
 /* ── 搜索命中高亮 ── */
 mark{background:#ffe36b;color:inherit;padding:0 1px;border-radius:2px}
@@ -225,6 +252,7 @@ mark{background:#ffe36b;color:inherit;padding:0 1px;border-radius:2px}
     <div class="bar">
       <div class="logo">寻</div>
       <div class="brand">寻欢阁</div>
+      <a id="ctNav" href="ct.html">📞 联系方式库</a>
       <div class="sbox" id="sbox">
         <span class="ic">🔍</span>
         <input id="q" placeholder="搜索标题 / 正文 / 作者 / 城市" autocomplete="off" enterkeyhint="search">
@@ -538,11 +566,28 @@ function absu(u){
   return HOST+'/'+u;
 }
 
+window.CTLIST=null;   // 有明文联系方式的帖子（正文自带，服务端没锁）
+window.CTMAP={};
+
+function loadContacts(){
+  return fetch('data/contacts.json?v='+(window.IDX&&window.IDX.ver||0),{cache:'force-cache'})
+    .then(function(r){ if(!r.ok) return []; return r.json(); })
+    .then(function(arr){
+      window.CTLIST=arr||[];
+      window.CTMAP={};
+      window.CTLIST.forEach(function(x){ window.CTMAP[x.i]=x.ct; });
+    })
+    .catch(function(){ window.CTLIST=[]; });
+}
+
 function boot(){
   var t=Date.now();
   fetch('data/index.json?t='+t,{cache:'no-store'}).then(function(r){return r.json();})
     .then(function(d){
       IDX=d;
+      return loadContacts();
+    })
+    .then(function(){
       buildTabs();
       return loadList();
     })
@@ -555,6 +600,9 @@ function boot(){
 
 function buildTabs(){
   var h='<button data-fid="all" class="on">全部 '+fmtN(IDX.total)+'</button>';
+  if(IDX.withContact){
+    h+='<button data-fid="__ct" class="cttab">📞 有联系方式 '+IDX.withContact+'</button>';
+  }
   (IDX.boards||[]).forEach(function(b){
     h+='<button data-fid="'+b.fid+'">'+esc(b.name)+' '+fmtN(b.n)+'</button>';
   });
@@ -567,6 +615,7 @@ function buildTabs(){
     S.q=''; if(window.$('#q')) window.$('#q').value='';
     window.searchState={hits:null,tok:null};
     renderHead();
+    if(S.fid==='__ct'){ render(true); return; }   // 联系方式池是本地整表，不需要分片
     loadList().then(function(){ renderHead(); render(true); });
   });
 }
@@ -587,6 +636,7 @@ function chunkBase(){
   return (fid==='all') ? 'data/p-' : ('data/b-'+fid+'-');
 }
 function chunkTotal(){
+  if(S.fid==='__ct') return 1;
   if(S.fid==='all') return (window.IDX&&window.IDX.pchunks)||1;
   var bs=(window.IDX&&window.IDX.boards)||[];
   for(var i=0;i<bs.length;i++){ if(String(bs[i].fid)===String(S.fid)) return bs[i].pchunks||1; }
@@ -638,6 +688,7 @@ function boardCount(fid){
 function renderHead(){
   var n;
   if(S.q && window.searchState.hits){ n = window.searchState.hits.length; }
+  else if(S.fid==='__ct'){ n = (window.CTLIST||[]).length; }
   else if(S.fid==='all'){ n = (window.IDX&&window.IDX.total)||0; }
   else { n = boardCount(S.fid); }
   $('#cnt').innerHTML='<b>'+fmtN(n)+'</b> 篇';
@@ -652,6 +703,7 @@ window.shown=0;
 var PAGE=60;
 
 function filtered(){
+  if(S.fid==='__ct') return (window.CTLIST||[]).slice();
   var arr=window.LIST||[];
   if(S.fid!=='all') arr=arr.filter(function(x){ return String(x.f)===String(S.fid); });
   if(S.sort==='new') arr=arr.slice().sort(function(a,b){ return String(b.d).localeCompare(String(a.d)); });
@@ -710,6 +762,13 @@ window.addEventListener('scroll',function(){
   }
 },{passive:true});
 
+function ctBadge(tid){
+  var ct=(window.CTMAP&&window.CTMAP[tid])||null;
+  if(!ct||!ct.length) return '';
+  var h='<div class="ctrow">';
+  ct.forEach(function(f){ h+='<span class="ct"><b>'+esc(f.k)+'</b>'+esc(f.v)+'</span>'; });
+  return h+'</div>';
+}
 function card(r){
   var cv=r.k?absu(r.k):'';
   return '<div class="card" data-tid="'+r.i+'">'+
@@ -717,6 +776,7 @@ function card(r){
       '<div class="Title">'+esc(r.t)+'</div>'+
       '<div class="State"><span class="ico">🕐</span><span>'+esc(r.r||r.d||'')+'</span>'+
         '<span class="dot"></span><span class="ico">👁</span><span>'+fmtN(r.v)+'</span></div>'+
+      ctBadge(r.i)+
       (r.s?'<div class="Desc">'+esc(r.s)+'</div>':'')+
       '<div class="Loc">'+
         '<div class="Left"><span class="pin">📍</span><span>'+esc(r.c||'未知')+'</span></div>'+
@@ -732,6 +792,7 @@ function hitCard(h, q){
     '<div class="State"><span class="ico">🕐</span><span>'+esc(h.d||'')+'</span>'+
       (h.a?'<span class="dot"></span><span class="ico">✍</span><span>'+hi(h.a,q)+'</span>':'')+
       '</div>'+
+    ctBadge(h.i)+
     '<div class="Desc">'+hi(h.b||h.x||'', q)+'</div>'+
     '<div class="Loc"><div class="Left"><span class="pin">📍</span><span>'+hi(h.x||'',q)+'</span></div>'+
       (cv?'<img class="Cover" src="'+esc(cv)+'" loading="lazy" alt="" '+
@@ -844,6 +905,13 @@ function openDetail(tid){
     renderDetailEmpty('读取失败：'+esc(e&&e.message));
   });
 }
+function fallbackCopy(val, cb){
+  var ta=document.createElement('textarea');
+  ta.value=val; ta.style.position='fixed'; ta.style.opacity='0';
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand('copy'); }catch(e){}
+  document.body.removeChild(ta); if(cb) cb();
+}
 function renderDetailEmpty(msg){
   $('#dBody').innerHTML='<div class="empty">'+msg+'<br><br>'+
     '<a class="ext" style="display:inline-block;padding:8px 18px" '+
@@ -859,6 +927,18 @@ function renderDetail(r){
      (r.views?' · '+fmtN(r.views)+' 浏览':'')+'</div></div></div>';
   if(r.video){
     h+='<div class="vbox" id="dvbox"><div class="pb">▶</div></div>';
+  }
+  var ct=(window.CTMAP&&window.CTMAP[r.tid])||null;
+  if(ct && ct.length){
+    h+='<div class="ctcard"><div class="hd">📞 联系方式'+
+       '<span class="tag">帖主自己写在正文里 · 服务端没有锁</span></div>';
+    ct.forEach(function(f,k){
+      h+='<div class="it"><span class="k">'+esc(f.k)+'</span>'+
+         '<span class="v" id="ctv'+k+'">'+esc(f.v)+'</span>'+
+         '<button data-ct="'+k+'">复制</button></div>';
+    });
+    h+='<div class="note">同页「分类信息」里的联系方式被原站服务端按积分/VIP 鉴权锁住了，'+
+       '这里显示的是帖主在正文或标题摘要里自己留下的号码，可以免登录直接看、直接复制。</div></div>';
   }
   if(r.body){
     h+='<div class="txt">'+esc(r.body)+'</div>';
@@ -892,6 +972,18 @@ function renderDetail(r){
       openPlayer([{url:absu(r.video)}],0,r.title);
     };
   }
+  $('#dBody').querySelectorAll('.ctcard button[data-ct]').forEach(function(bt){
+    bt.onclick=function(){
+      var el=$('#ctv'+bt.dataset.ct);
+      if(!el) return;
+      var val=el.textContent;
+      var done=function(){ bt.textContent='已复制'; toast('已复制 '+val);
+        setTimeout(function(){ bt.textContent='复制'; },1400); };
+      if(navigator.clipboard&&navigator.clipboard.writeText){
+        navigator.clipboard.writeText(val).then(done).catch(function(){ fallbackCopy(val,done); });
+      } else { fallbackCopy(val,done); }
+    };
+  });
   $('#dBody').querySelectorAll('.gal img').forEach(function(im){
     im.onclick=function(){
       var list=r.images.map(absu);

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="theme-color" content="#111318">
+<title>寻欢阁 · 联系方式库</title>
+<link rel="icon" href="icon.png">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:#0e1015;color:#e8ecf2;
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+a{color:#5cc8ff;text-decoration:none}
+#hd{position:sticky;top:0;z-index:20;background:rgba(14,16,21,.94);backdrop-filter:blur(14px);
+  border-bottom:1px solid #1d2230;padding:calc(env(safe-area-inset-top) + 10px) 12px 0}
+.row1{display:flex;align-items:center;gap:9px}
+.logo{width:30px;height:30px;flex:none;border-radius:9px;background:linear-gradient(135deg,#ff5c8a,#a04bff);
+  display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff}
+.brand{font-size:16px;font-weight:800;letter-spacing:.5px}
+.badge{font-size:10.5px;padding:2px 6px;border-radius:5px;background:#2a1a2e;color:#ff8fb4;border:1px solid #4a2438}
+.back{margin-left:auto;font-size:12.5px;color:#8892a4;padding:5px 10px;border:1px solid #2a3040;border-radius:8px}
+.sbox{display:flex;align-items:center;gap:7px;margin:9px 0 0;background:#171b24;border:1px solid #242b3a;
+  border-radius:10px;padding:0 11px;height:40px}
+.sbox input{flex:1;min-width:0;background:0;border:0;outline:0;color:#e8ecf2;font-size:14.5px}
+.sbox input::placeholder{color:#5b6577}
+.sbox .clr{display:none;background:0;border:0;color:#6b7488;font-size:15px;padding:2px 4px}
+.sbox.has .clr{display:block}
+.tabs{display:flex;gap:7px;overflow-x:auto;padding:9px 0 10px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:none;font-size:13px;padding:6px 13px;border-radius:16px;border:1px solid #262d3c;
+  background:#161a23;color:#98a3b4;white-space:nowrap}
+.tabs button.on{background:linear-gradient(135deg,#ff5c8a,#a04bff);border-color:transparent;color:#fff;font-weight:700}
+#bar{position:sticky;top:0;z-index:9;display:flex;align-items:center;gap:8px;padding:8px 14px;
+  font-size:12px;color:#7d8798;background:#0e1015;border-bottom:1px solid #171c26}
+#bar b{color:#c9d3e2;font-weight:700}
+#bar .sp{flex:1}
+#feed{padding:10px 12px 40px}
+.card{background:#141822;border:1px solid #1e2532;border-radius:13px;padding:13px 13px 11px;margin-bottom:10px}
+.card .t{font-size:15px;font-weight:700;line-height:1.4;color:#eef2f8}
+.card .meta{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0;font-size:11.5px;color:#8b96a8}
+.card .meta i{font-style:normal;background:#1b2130;border-radius:5px;padding:2px 7px}
+.card .meta i.pr{background:#221a12;color:#ffb066}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:5px 9px;border-radius:8px;
+  background:#0f1a17;border:1px solid #1d3a30;color:#5fe0a8;cursor:pointer;word-break:break-all}
+.chip .k{font-size:10px;color:#4b9c7c;background:#132a22;border-radius:4px;padding:1px 5px;font-weight:700}
+.chip.ph{background:#101a24;border-color:#1d3040;color:#6ec5ff}
+.chip.ph .k{color:#4d8db5;background:#122430}
+.chip.qq{background:#1a1524;border-color:#33243f;color:#c39bff}
+.chip.qq .k{color:#8a63c4;background:#241a30}
+.chip.wx{background:#0f1a17;border-color:#1d3a30;color:#5fe0a8}
+.chip.wx .k{color:#4b9c7c;background:#132a22}
+.chip.yy{background:#1f1a12;border-color:#3d3220;color:#ffc46b}
+.chip.yy .k{color:#b08a3f;background:#2b2314}
+.chip.tg{background:#111a26;border-color:#1e3048;color:#66a6ff}
+.chip.tg .k{color:#4a7ab8;background:#132033}
+.chip:active{transform:scale(.96)}
+.more{margin-top:9px}
+.more .tg{font-size:12px;color:#5d6878;cursor:pointer;user-select:none}
+.more .bd{display:none;margin-top:8px;padding-top:9px;border-top:1px dashed #232a38;
+  font-size:13px;line-height:1.75;color:#a8b3c4;white-space:pre-wrap;word-break:break-word}
+.more.on .bd{display:block}
+.more .bd .fl{color:#7d8798;font-size:11.5px;margin-bottom:6px}
+#sent{display:flex;justify-content:center;padding:18px 0 30px;font-size:12.5px;color:#5d6878}
+#toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 30px);transform:translate(-50%,10px);
+  background:rgba(30,190,120,.94);color:#04170e;font-size:13px;font-weight:700;padding:9px 18px;border-radius:20px;
+  opacity:0;pointer-events:none;transition:.2s;z-index:99;max-width:86vw;text-align:center}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+.note{margin:0 12px 14px;padding:11px 13px;background:#141822;border:1px solid #1e2532;border-radius:10px;
+  font-size:11.5px;line-height:1.7;color:#78838f}
+.note b{color:#ff8fb4}
+</style>
+</head>
+<body>
+<div id="hd">
+  <div class="row1">
+    <div class="logo">寻</div>
+    <div class="brand">联系方式库</div>
+    <span class="badge">archiver 已解</span>
+    <a class="back" href="index.html">← 帖子站</a>
+  </div>
+  <div class="sbox" id="sbox">
+    <span>🔍</span>
+    <input id="q" placeholder="搜号码 / QQ / 微信 / 城市 / 标题" autocomplete="off" enterkeyhint="search">
+    <button class="clr" id="qClr">✕</button>
+  </div>
+  <div class="tabs" id="tabs"></div>
+</div>
+<div id="bar"><span id="cnt">载入中…</span><span class="sp"></span><span id="srt"></span></div>
+<div id="feed"></div>
+<div id="sent"></div>
+<div id="toast"></div>
+<div class="note">数据取自 <b>xhg521.com</b> 的 archiver 精简通道——该通道不经过 vip_view 付费插件，付费墙里的 QQ / 微信 / 与你 / 电话全部明文输出。原站每个字段要付 3 金币或开 VIP，这里直接给。</div>
+<script>
+var IDX=null, ROWS=[], SHARDS=0, DONE=0, FILT='all', Q='', SHOWN=0, PAGE=80, FLAT=null;
+var $=function(s,r){return (r||document).querySelector(s)};
+var $$=function(s,r){return [].slice.call((r||document).querySelectorAll(s))};
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+  return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+
+function toast(t){var g=$('#toast');g.textContent=t;g.classList.add('on');
+  clearTimeout(toast._t);toast._t=setTimeout(function(){g.classList.remove('on')},800)}
+
+function copy(v,label){
+  var done=function(){toast('已复制 '+label+'：'+v)};
+  if(navigator.clipboard&&window.isSecureContext){
+    navigator.clipboard.writeText(v).then(done,function(){fallback(v,done)});
+  }else fallback(v,done);
+}
+function fallback(v,cb){
+  var ta=document.createElement('textarea');ta.value=v;ta.style.cssText='position:fixed;opacity:0;top:0';
+  document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy')}catch(e){}
+  document.body.removeChild(ta);cb();
+}
+
+function flat(){
+  if(FLAT) return FLAT;
+  FLAT = ROWS.map(function(r){
+    var parts=[r.t,r.ar,r.ag,r.sv,r.ad,r.ct,r.x].concat(r.qq||[],r.wx||[],r.yy||[],r.ph||[],r.tg||[]);
+    r._s = parts.join(' ').toLowerCase();
+    return r;
+  });
+  return FLAT;
+}
+
+function match(r){
+  if(FILT==='ph' && !(r.ph&&r.ph.length)) return false;
+  if(FILT==='qq' && !(r.qq&&r.qq.length)) return false;
+  if(FILT==='wx' && !(r.wx&&r.wx.length)) return false;
+  if(FILT==='yy' && !(r.yy&&r.yy.length)) return false;
+  if(!Q) return true;
+  return r._s.indexOf(Q) >= 0;
+}
+
+var LBL={ph:'电话',qq:'QQ',wx:'微信',yy:'与你',tg:'TG'};
+function chip(kind,v){
+  return '<span class="chip '+kind+'" data-cp="'+esc(v)+'" data-lb="'+LBL[kind]+'">'+
+    '<span class="k">'+LBL[kind]+'</span>'+esc(v)+'</span>';
+}
+
+function card(r){
+  var chips='';
+  (r.ph||[]).forEach(function(v){chips+=chip('ph',v)});
+  (r.wx||[]).forEach(function(v){chips+=chip('wx',v)});
+  (r.qq||[]).forEach(function(v){chips+=chip('qq',v)});
+  (r.yy||[]).forEach(function(v){chips+=chip('yy',v)});
+  (r.tg||[]).forEach(function(v){chips+=chip('tg',v)});
+  var meta='';
+  if(r.ar) meta+='<i>'+esc(r.ar)+'</i>';
+  if(r.ag) meta+='<i>'+esc(r.ag)+'</i>';
+  if(r.lk) meta+='<i>颜值 '+esc(r.lk)+'</i>';
+  if(r.pr) meta+='<i class="pr">'+esc(r.pr)+'</i>';
+  if(r.ov) meta+='<i>包夜 '+esc(r.ov)+'</i>';
+  var body='';
+  if(r.sv) body+='<div class="fl">服务：'+esc(r.sv)+'</div>';
+  if(r.ad) body+='<div class="fl">地址：'+esc(r.ad)+'</div>';
+  if(r.ct) body+='<div class="fl">原文：'+esc(r.ct)+'</div>';
+  if(r.x) body+='<div style="margin-top:6px">'+esc(r.x)+'</div>';
+  var h='<div class="card">';
+  h+='<div class="t">'+esc(r.t||('帖子 '+r.i))+'</div>';
+  h+='<div class="meta">'+meta+'<i>#'+esc(r.i)+'</i></div>';
+  h+='<div class="chips">'+chips+'</div>';
+  if(body) h+='<div class="more"><div class="tg">展开详情 / 介绍 ▾</div><div class="bd">'+body+'</div></div>';
+  return h+'</div>';
+}
+
+function render(){
+  flat();
+  var list = ROWS.filter(match);
+  var html='', n=Math.min(list.length, SHOWN+PAGE);
+  for(var i=SHOWN;i<n;i++) html+=card(list[i]);
+  SHOWN=n;
+  $('#feed').innerHTML = list.length? html : '<div class="end" style="text-align:center;padding:60px 0;color:#5d6878">没有匹配的记录</div>';
+  $('#cnt').innerHTML='<b>'+list.length+'</b> 条';
+  $('#srt').textContent = Q? '搜索「'+Q+'」' : (FILT==='all'?'全部':'仅'+({ph:'有电话',qq:'有QQ',wx:'有微信',yy:'有与你'}[FILT]));
+  $$('.more .tg').forEach(function(el){
+    el.onclick=function(){el.parentNode.classList.toggle('on')};
+  });
+  $$('.chip').forEach(function(el){
+    el.onclick=function(){copy(el.getAttribute('data-cp'), el.getAttribute('data-lb'))};
+  });
+  checkSent(list.length);
+}
+
+function checkSent(total){
+  var more = total > SHOWN;
+  $('#sent').textContent = more ? '继续下滑 · 已显示 '+SHOWN+'/'+total : (total? '已经到底了 · 共 '+total+' 条' : '');
+}
+
+function buildTabs(){
+  var h='<button data-f="all" class="on">全部 '+IDX.total+'</button>';
+  h+='<button data-f="ph">📞 有电话 '+IDX.withPH+'</button>';
+  h+='<button data-f="wx">💬 有微信 '+IDX.withWX+'</button>';
+  h+='<button data-f="qq">🐧 有QQ '+IDX.withQQ+'</button>';
+  h+='<button data-f="yy">与你 '+IDX.withYY+'</button>';
+  $('#tabs').innerHTML=h;
+  $('#tabs').onclick=function(e){
+    var bt=e.target.closest('button'); if(!bt) return;
+    $$('#tabs button').forEach(function(x){x.classList.remove('on')});
+    bt.classList.add('on'); FILT=bt.getAttribute('data-f'); SHOWN=0; render();
+  };
+}
+
+function loadAll(){
+  var ps=[];
+  for(var i=0;i<IDX.pchunks;i++) ps.push(i);
+  var buf={};
+  function next(){
+    if(!ps.length){
+      ROWS=[];
+      for(var k=0;k<IDX.pchunks;k++) ROWS=ROWS.concat(buf[k]||[]);
+      SHOWN=0; $('#sent').textContent=''; render(); return;
+    }
+    var k=ps.shift();
+    fetch('ctdata/p-'+String(k).padStart(3,'0')+'.json',{cache:'force-cache'})
+      .then(function(r){return r.ok?r.json():[]})
+      .then(function(a){buf[k]=a;DONE++;$('#cnt').innerHTML='载入中 '+DONE+'/'+IDX.pchunks;next()})
+      .catch(function(){$('#cnt').innerHTML='分片载入失败';
+      });
+  }
+  next();
+}
+
+window.onscroll=function(){
+  if(!IDX || !ROWS.length) return;
+  if(window.innerHeight+window.scrollY > document.body.offsetHeight-800){
+    var before=SHOWN; render();
+    if(SHOWN===before && SHOWN>=ROWS.filter(match).length){}
+  }
+};
+
+(function boot(){
+  var qs=new URLSearchParams(location.search);
+  if(qs.get('q')) Q=qs.get('q').toLowerCase();
+  fetch('ctdata/index.json?v='+Date.now(),{cache:'no-store'})
+    .then(function(r){return r.json()})
+    .then(function(d){
+      IDX=d; buildTabs(); if(Q){$('#q').value=qs.get('q');$('#sbox').classList.add('has');}
+      loadAll();
+    })
+    .catch(function(e){
+      $('#feed').innerHTML='<div style="padding:60px 20px;text-align:center;color:#e07">数据加载失败：'+esc(e&&e.message)+'</div>';
+    });
+  $('#q').oninput=function(){
+    Q=this.value.trim().toLowerCase();
+    $('#sbox').classList.toggle('has', !!this.value);
+    SHOWN=0; if(IDX) render();
+  };
+  $('#qClr').onclick=function(){
+    $('#q').value=''; Q=''; $('#sbox').classList.remove('has'); SHOWN=0; if(IDX) render(); $('#q').focus();
+  };
+})();
+</script>
+</body>
+</html>
