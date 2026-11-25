@@ -213,7 +213,7 @@ function loadAll(){
       SHOWN=0; $('#sent').textContent=''; render(); return;
     }
     var k=ps.shift();
-    fetch('ctdata/p-'+String(k).padStart(3,'0')+'.json',{cache:'force-cache'})
+    fetch('ctdata/p-'+String(k).padStart(3,'0')+'.json?v='+IDX.ver,{cache:'force-cache'})
       .then(function(r){return r.ok?r.json():[]})
       .then(function(a){buf[k]=a;DONE++;$('#cnt').innerHTML='载入中 '+DONE+'/'+IDX.pchunks;next()})
       .catch(function(){$('#cnt').innerHTML='分片载入失败';
