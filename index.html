@@ -572,7 +572,9 @@ window.CTLIST=null;   // 有明文联系方式的帖子（正文自带，服务�
 window.CTMAP={};
 
 function loadContacts(){
-  return fetch('data/contacts.json?v='+(window.IDX&&window.IDX.ver||0),{cache:'force-cache'})
+  // 注意：不能用 force-cache。GitHub Pages 构建期间会返回 503，浏览器一旦把这个 503
+  // 写进强制缓存就永久命中，表现为「有联系方式」标签数正常但 CTLIST 恒为 0。
+  return fetch('data/contacts.json?v='+(window.IDX&&window.IDX.ver||0),{cache:'no-store'})
     .then(function(r){ if(!r.ok) return []; return r.json(); })
     .then(function(arr){
       window.CTLIST=arr||[];
