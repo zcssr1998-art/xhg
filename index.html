@@ -109,6 +109,8 @@ button{font-family:inherit;cursor:pointer}
 #detail .ctcard .it button{flex:none;background:#fff;border:1px solid #c9e8d4;color:#1a8f4a;
   border-radius:6px;font-size:11.5px;padding:4px 10px}
 #detail .ctcard .it button:active{background:#e2f6e9}
+#detail .ctcard .it .src{flex:none;font-size:9.5px;font-weight:700;color:#8a5cd6;background:#f1e9fd;
+  border:1px solid #ddcdf7;border-radius:4px;padding:1px 5px;letter-spacing:.3px}
 #detail .ctcard .note{margin-top:9px;font-size:11.5px;color:#8aa79a;line-height:1.6}
 
 /* ── 搜索命中高亮 ── */
@@ -766,7 +768,10 @@ function ctBadge(tid){
   var ct=(window.CTMAP&&window.CTMAP[tid])||null;
   if(!ct||!ct.length) return '';
   var h='<div class="ctrow">';
-  ct.forEach(function(f){ h+='<span class="ct"><b>'+esc(f.k)+'</b>'+esc(f.v)+'</span>'; });
+  ct.forEach(function(f){
+    var mk=(f.src==='521')?'<i style="font-style:normal;font-size:9px;opacity:.62;margin-left:3px">521</i>':'';
+    h+='<span class="ct"><b>'+esc(f.k)+'</b>'+esc(f.v)+mk+'</span>';
+  });
   return h+'</div>';
 }
 function card(r){
@@ -930,15 +935,23 @@ function renderDetail(r){
   }
   var ct=(window.CTMAP&&window.CTMAP[r.tid])||null;
   if(ct && ct.length){
+    var has521=ct.some(function(f){ return f.src==='521'; });
+    var hasBody=ct.some(function(f){ return f.src!=='521'; });
+    var tag=has521
+      ? (hasBody?'同源站 archiver 破解 + 正文自留':'同源站 archiver 破解所得')
+      : '帖主自己写在正文里 · 服务端没有锁';
     h+='<div class="ctcard"><div class="hd">📞 联系方式'+
-       '<span class="tag">帖主自己写在正文里 · 服务端没有锁</span></div>';
+       '<span class="tag">'+tag+'</span></div>';
     ct.forEach(function(f,k){
+      var mk=(f.src==='521')?'<span class="src" title="从同源镜像站付费墙绕过取得">521</span>':'';
       h+='<div class="it"><span class="k">'+esc(f.k)+'</span>'+
-         '<span class="v" id="ctv'+k+'">'+esc(f.v)+'</span>'+
+         '<span class="v" id="ctv'+k+'">'+esc(f.v)+'</span>'+mk+
          '<button data-ct="'+k+'">复制</button></div>';
     });
-    h+='<div class="note">同页「分类信息」里的联系方式被原站服务端按积分/VIP 鉴权锁住了，'+
-       '这里显示的是帖主在正文或标题摘要里自己留下的号码，可以免登录直接看、直接复制。</div></div>';
+    h+='<div class="note">'+(has521
+        ? '同页「分类信息」里的号码被主站服务端按积分/VIP 锁死，这里标 <b>521</b> 的号码来自同源镜像站 xhg521.com 的 archiver 精简渲染通道——该通道不加载 vip_view 插件钩子，付费墙随标签一起被剥掉，号码明文直出。'
+        : '同页「分类信息」里的联系方式被原站服务端按积分/VIP 鉴权锁住了，这里显示的是帖主在正文里自己留下的号码。')+
+       ' 免登录直接看、直接复制。</div></div>';
   }
   if(r.body){
     h+='<div class="txt">'+esc(r.body)+'</div>';
