@@ -390,6 +390,16 @@ function fmtT(s){
   var p=function(x){return x<10?'0'+x:x;};
   return h? h+':'+p(m)+':'+p(ss) : p(m)+':'+p(ss);
 }
+/* 地区串整段高亮：避免「浙江省·<mark>杭州</mark>市」把地名切碎 */
+function hiLoc(city, gi, q){
+  var raw = locTxt(city, gi);
+  var t = esc(raw);
+  if(!q) return t;
+  var hit = q.split(/\s+/).filter(Boolean).some(function(w){
+    return raw.toLowerCase().indexOf(w.toLowerCase()) >= 0;
+  });
+  return hit ? '<mark>'+t+'</mark>' : t;
+}
 function hi(text, q){
   var t = esc(text);
   if(!q) return t;
@@ -959,7 +969,7 @@ function hitCard(h, q){
       '</div>'+
     ctBadge(h.i)+
     '<div class="Desc">'+hi(h.b||h.x||'', q)+'</div>'+
-    '<div class="Loc"><div class="Left"><span class="pin">📍</span><span>'+hi(locTxt(h.c||cityNameOf(h.g),h.g),q)+'</span>'+
+    '<div class="Loc"><div class="Left"><span class="pin">📍</span><span>'+hiLoc(h.c||cityNameOf(h.g),h.g,q)+'</span>'+
       (h.p?'<span class="pr">¥'+esc(h.p)+'</span>':'')+'</div>'+
       (cv?'<img class="Cover" src="'+esc(cv)+'" loading="lazy" alt="" '+
            'onerror="this.style.display=\'none\'">':'')+
