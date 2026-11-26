@@ -982,7 +982,7 @@ function loadSearchIndex(){
   var ps=[];
   for(var i=0;i<(IDX.schunks||1);i++) ps.push(i);
   return Promise.all(ps.map(function(i){
-    return fetch('data/s-'+pad(i)+'.json',{cache:'force-cache'})
+    return fetch('data/s-'+pad(i)+'.json?v='+(IDX.ver||0),{cache:'force-cache'})
       .then(function(r){return r.json();})
       .then(function(arr){ SIDX[i]=arr; });
   })).then(function(){
