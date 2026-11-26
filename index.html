@@ -60,6 +60,21 @@ button{font-family:inherit;cursor:pointer}
   color:#666;display:flex;align-items:center;gap:5px}
 #bar2 .srt.on{background:#ffeef4;border-color:#ffd0e0;color:var(--acc);font-weight:600}
 
+/* ── 地区筛选条（省 → 市 两级，复原官网地区分类） ── */
+#regbar{max-width:1240px;margin:0 auto;padding:8px 14px 0}
+#regbar .rw{display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:none;
+  padding-bottom:6px}
+#regbar .rw::-webkit-scrollbar{display:none}
+#regbar .lb{flex:none;font-size:11.5px;color:#a2a7ac;font-weight:600;margin-right:2px}
+#regbar .rg{flex:none;background:#fff;border:1px solid var(--line);border-radius:13px;
+  padding:4px 10px;font-size:12.5px;color:#5d6368;white-space:nowrap;line-height:1.5}
+#regbar .rg i{font-style:normal;font-size:10.5px;color:#b0b5ba;margin-left:3px}
+#regbar .rg.on{background:#ffeef4;border-color:#ffd0e0;color:var(--acc);font-weight:700}
+#regbar .rg.on i{color:#f282ad}
+#regbar .rw.cities{display:none}
+#regbar .rw.cities.on{display:flex}
+#regbar .pg{flex:none;margin-left:auto;font-size:11.5px;color:#b0b5ba;white-space:nowrap}
+
 /* ── 卡片网格（复原官网 el-col 三列） ── */
 #feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:10px;
   padding:8px 14px 0;max-width:1240px;margin:0 auto;align-items:start}
@@ -94,6 +109,16 @@ button{font-family:inherit;cursor:pointer}
   font-variant-numeric:tabular-nums;word-break:break-all}
 .ctrow .ct b{font-weight:600;opacity:.72;margin-right:3px}
 .ctrow .ct.more{opacity:.6;font-weight:600}
+/* 分类信息（复原官网详情左侧「省市区/年龄/外貌/消费/服务」栏） */
+#detail .infocard{margin:0 0 14px;border:1px solid #e8ecf2;background:#f8fafc;border-radius:10px;
+  padding:12px 14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px 14px}
+#detail .infocard .cell{display:flex;align-items:baseline;gap:7px;padding:5px 0;min-width:0;
+  font-size:13px;border-bottom:1px dashed #e6ebf1}
+#detail .infocard .cell:nth-last-child(-n+2){border-bottom:0}
+#detail .infocard .k{flex:none;font-size:11.5px;color:#8b9096;min-width:38px}
+#detail .infocard .v{color:#1f2428;font-weight:600;word-break:break-all;line-height:1.5}
+#detail .infocard .v.pr{color:#e2452c;font-variant-numeric:tabular-nums}
+#detail .infocard .cell.wide{grid-column:1/-1}
 #detail .ctcard{margin:14px 0 0;border:1px solid #d3f0de;background:#f6fdf8;border-radius:10px;
   padding:13px 14px}
 #detail .ctcard .hd{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;
@@ -265,6 +290,10 @@ mark{background:#ffe36b;color:inherit;padding:0 1px;border-radius:2px}
     <div class="tabs" id="tabs"></div>
   </div>
   <div id="bar2"><span id="cnt">—</span><span class="sp"></span><span id="srt"></span></div>
+  <div id="regbar">
+    <div class="rw provs" id="rwProv"></div>
+    <div class="rw cities" id="rwCity"></div>
+  </div>
   <div id="feed"></div>
   <div id="more"></div>
 </div>
@@ -558,7 +587,7 @@ window.LIST=[];
 window.LOADED={};
 window.DET={};
 window.SIDX=[];
-window.S={fid:'all',q:'',sort:'hot'};
+window.S={fid:'all',q:'',sort:'hot',gi:-1,gp:-1};   // gp=省下标 gi=市下标，-1 表示不限
 window.searchState={chunks:0,all:[]};
 
 function absu(u){
@@ -594,6 +623,7 @@ function boot(){
     })
     .then(function(){
       buildTabs();
+      buildRegions();
       return loadList();
     })
     .then(function(){ renderHead(); render(true); })
@@ -624,10 +654,105 @@ function buildTabs(){
     loadList().then(function(){ renderHead(); render(true); });
   });
 }
+// 日期归一成可比较数字：源站日期是 "2026-9-9" 这种不补零格式，
+// 直接按字符串比较会把 9 月排在 10 月之后，必须先转 YYYYMMDD。
+function dnum(s){
+  if(!s) return 0;
+  var m=String(s).match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+  if(!m) return 0;
+  return (+m[1])*10000 + (+m[2])*100 + (+m[3]);
+}
+// 城市下标 → 所属省名（用于卡片显示「省·市」）
+function provOfCity(gi){
+  if(gi===undefined || gi===null || gi<0) return '';
+  var regs=(window.IDX&&window.IDX.regions)||[];
+  for(var i=0;i<regs.length;i++){
+    var cs=regs[i].cities||[];
+    for(var j=0;j<cs.length;j++){ if(cs[j].i===gi) return regs[i].p; }
+  }
+  return '';
+}
+// 城市下标 → 城市名
+function cityNameOf(gi){
+  if(gi===undefined || gi===null || gi<0) return '';
+  var regs=(window.IDX&&window.IDX.regions)||[];
+  for(var i=0;i<regs.length;i++){
+    var cs=regs[i].cities||[];
+    for(var j=0;j<cs.length;j++){ if(cs[j].i===gi) return cs[j].c; }
+  }
+  return '';
+}
+// 卡片地区文案：省·市；省名与市名相同（直辖市）时只显示一次
+function locTxt(city, gi){
+  city=city||'';
+  var pv=provOfCity(gi);
+  if(!pv) return city||'未知';
+  if(!city || city===pv) return pv;
+  return pv+'·'+city;
+}
 function fmtN(n){
   n=n||0;
   if(n>=10000) return (n/10000).toFixed(1).replace(/\.0$/,'')+'万';
   return String(n);
+}
+
+/* ══════ 地区分类（省 → 市 两级，对齐源站分类） ══════ */
+window.curProv='';
+function buildRegions(){
+  var regs=(window.IDX&&window.IDX.regions)||[];
+  if(!regs.length) return;
+  var h='<span class="lb">地区</span>'+
+        '<button class="rg on" data-p="">全国 <i>'+fmtN(window.IDX.total)+'</i></button>';
+  regs.forEach(function(r){
+    h+='<button class="rg" data-p="'+esc(r.p)+'">'+esc(r.p)+' <i>'+fmtN(r.n)+'</i></button>';
+  });
+  $('#rwProv').innerHTML=h;
+  $('#rwProv').onclick=function(e){
+    var bt=e.target.closest('.rg'); if(!bt) return;
+    selectProv(bt.dataset.p);
+  };
+  $('#rwCity').onclick=function(e){
+    var bt=e.target.closest('.rg'); if(!bt) return;
+    var gi=bt.dataset.g;
+    $$('#rwCity .rg').forEach(function(x){ x.classList.remove('on'); });
+    bt.classList.add('on');
+    S.gi = (gi===''||gi===undefined) ? -1 : parseInt(gi,10);
+    S.q=''; if($('#q')) $('#q').value='';
+    window.searchState={hits:null,tok:null};
+    loadList().then(function(){ renderHead(); render(true); });
+  };
+}
+function selectProv(p){
+  $$('#rwProv .rg').forEach(function(x){
+    x.classList.toggle('on', x.dataset.p===p);
+  });
+  var bar=$('#rwCity');
+  if(!p){
+    bar.classList.remove('on'); bar.innerHTML='';
+    window.curProv='';
+    S.gi=-1; S.gp=-1;
+    S.q=''; if($('#q')) $('#q').value='';
+    window.searchState={hits:null,tok:null};
+    loadList().then(function(){ renderHead(); render(true); });
+    return;
+  }
+  window.curProv=p;
+  var regs=(window.IDX&&window.IDX.regions)||[];
+  var reg=null;
+  for(var i=0;i<regs.length;i++){ if(regs[i].p===p){ reg=regs[i]; break; } }
+  if(!reg){ return; }
+  var h='<span class="lb">'+esc(p)+'</span>'+
+        '<button class="rg on" data-g="">不限城市 <i>'+fmtN(reg.n)+'</i></button>';
+  (reg.cities||[]).forEach(function(c){
+    h+='<button class="rg" data-g="'+c.i+'">'+esc(c.c)+' <i>'+fmtN(c.n)+'</i></button>';
+  });
+  bar.innerHTML=h;
+  bar.classList.add('on');
+  S.gi=-1;
+  S.gp=reg.pi;
+  S.q=''; if($('#q')) $('#q').value='';
+  window.searchState={hits:null,tok:null};
+  loadList().then(function(){ renderHead(); render(true); });
 }
 
 /* 分片懒加载：全部走 p-NNN，单板块走 b-<fid>-NNN；滚动到底自动续拉 */
@@ -636,13 +761,31 @@ window.PALL=[];
 window.PCUR=null;       // 当前分片前缀所属 fid（'all' 或具体 fid）
 var loadingP=false;
 
+function cityMeta(gi){
+  var regs=(window.IDX&&window.IDX.regions)||[];
+  for(var i=0;i<regs.length;i++){
+    var cs=regs[i].cities||[];
+    for(var j=0;j<cs.length;j++){ if(cs[j].i===gi) return {p:regs[i].p,c:cs[j]}; }
+  }
+  return null;
+}
+// 分片基址优先级：城市 > 省 > 板块 > 全部（全部再按排序切 p/n）
 function chunkBase(){
-  var fid = (S.fid==='all') ? 'all' : String(S.fid);
-  return (fid==='all') ? 'data/p-' : ('data/b-'+fid+'-');
+  if(S.gi>=0) return 'data/g-'+S.gi+'-';
+  if(S.gp>=0) return 'data/r-'+S.gp+'-';
+  if(S.fid!=='all' && S.fid!=='__ct') return 'data/b-'+S.fid+'-';
+  return (S.sort==='new') ? 'data/n-' : 'data/p-';
+}
+function provMeta(pi){
+  var regs=(window.IDX&&window.IDX.regions)||[];
+  for(var i=0;i<regs.length;i++){ if(regs[i].pi===pi) return regs[i]; }
+  return null;
 }
 function chunkTotal(){
   if(S.fid==='__ct') return 1;
-  if(S.fid==='all') return (window.IDX&&window.IDX.pchunks)||1;
+  if(S.gi>=0){ var cm=cityMeta(S.gi); return (cm&&cm.c.ch)||1; }
+  if(S.gp>=0){ var pm=provMeta(S.gp); return (pm&&pm.ch)||1; }
+  if(S.fid==='all') return (window.IDX&&((S.sort==='new')?window.IDX.nchunks:window.IDX.pchunks))||1;
   var bs=(window.IDX&&window.IDX.boards)||[];
   for(var i=0;i<bs.length;i++){ if(String(bs[i].fid)===String(S.fid)) return bs[i].pchunks||1; }
   return 1;
@@ -670,9 +813,10 @@ function pull(k){
   }).catch(function(e){ loadingP=false; throw e; });
 }
 
+function curKey(){ return S.fid+'|'+S.sort+'|'+S.gi; }
 function loadList(){
   window.PALL=[]; window.LIST=[]; window.PI=0;
-  window.PCUR=(S.fid==='all')?'all':String(S.fid);
+  window.PCUR=curKey();
   return pull(0);
 }
 
@@ -694,6 +838,8 @@ function renderHead(){
   var n;
   if(S.q && window.searchState.hits){ n = window.searchState.hits.length; }
   else if(S.fid==='__ct'){ n = (window.CTLIST||[]).length; }
+  else if(S.gi>=0){ var cm=cityMeta(S.gi); n = cm?cm.c.n:0; }
+  else if(S.gp>=0){ var pm=provMeta(S.gp); n = pm?pm.n:0; }
   else if(S.fid==='all'){ n = (window.IDX&&window.IDX.total)||0; }
   else { n = boardCount(S.fid); }
   $('#cnt').innerHTML='<b>'+fmtN(n)+'</b> 篇';
@@ -710,8 +856,11 @@ var PAGE=60;
 function filtered(){
   if(S.fid==='__ct') return (window.CTLIST||[]).slice();
   var arr=window.LIST||[];
-  if(S.fid!=='all') arr=arr.filter(function(x){ return String(x.f)===String(S.fid); });
-  if(S.sort==='new') arr=arr.slice().sort(function(a,b){ return String(b.d).localeCompare(String(a.d)); });
+  if(S.gi<0 && S.gp<0 && S.fid!=='all') arr=arr.filter(function(x){ return String(x.f)===String(S.fid); });
+  // 分片本身已是目标顺序（p=热度序 / n=日期序 / g=城市热度序），这里只在需要时补排
+  if(S.sort==='new' && (S.gi>=0 || S.fid!=='all')){
+    arr=arr.slice().sort(function(a,b){ return dnum(b.d)-dnum(a.d); });
+  }
   return arr;
 }
 
@@ -794,7 +943,8 @@ function card(r){
       ctBadge(r.i)+
       (r.s?'<div class="Desc">'+esc(r.s)+'</div>':'')+
       '<div class="Loc">'+
-        '<div class="Left"><span class="pin">📍</span><span>'+esc(r.c||'未知')+'</span></div>'+
+        '<div class="Left"><span class="pin">📍</span><span>'+esc(locTxt(r.c,r.g))+'</span>'+
+          (r.p?'<span class="pr">¥'+esc(r.p)+'</span>':'')+'</div>'+
         (cv?'<img class="Cover" src="'+esc(cv)+'" loading="lazy" alt="" '+
              'onerror="this.style.display=\'none\'">':'')+
       '</div>'+
@@ -809,7 +959,8 @@ function hitCard(h, q){
       '</div>'+
     ctBadge(h.i)+
     '<div class="Desc">'+hi(h.b||h.x||'', q)+'</div>'+
-    '<div class="Loc"><div class="Left"><span class="pin">📍</span><span>'+hi(h.x||'',q)+'</span></div>'+
+    '<div class="Loc"><div class="Left"><span class="pin">📍</span><span>'+hi(locTxt(h.c||cityNameOf(h.g),h.g),q)+'</span>'+
+      (h.p?'<span class="pr">¥'+esc(h.p)+'</span>':'')+'</div>'+
       (cv?'<img class="Cover" src="'+esc(cv)+'" loading="lazy" alt="" '+
            'onerror="this.style.display=\'none\'">':'')+
     '</div></div></div>';
@@ -861,15 +1012,22 @@ function doSearch(q){
         if(tl.indexOf(toks[m])>=0) sc+=10;
         if(((r.a||'').toLowerCase()).indexOf(toks[m])>=0) sc+=4;
       }
-      hits.push({i:r.i,t:r.t,d:'',x:r.x,b:r.b,a:r.a,k:'',v:0,_s:sc});
+      var gg=(r.g===undefined?-1:r.g);
+      hits.push({i:r.i,t:r.t,d:r.d||'',x:r.x,b:r.b,a:r.a,k:'',v:0,_s:sc,
+                 g:gg, c:cityNameOf(gg), p:r.p||''});
     }
-    hits.sort(function(a,b){ return b._s-a._s; });
-    // 补 views/cover 从 LIST
+    // 用户要求：搜索结果按时间倒序（最新的在最前），相关度只作同一天内的次级排序
+    hits.sort(function(a,b){
+      var d=dnum(b.d)-dnum(a.d);
+      if(d) return d;
+      return (b._s||0)-(a._s||0);
+    });
+    // 补 views/cover 从当前已加载列表
     var map={};
     for(var z=0;z<LIST.length;z++) map[LIST[z].i]=LIST[z];
     for(var y=0;y<hits.length;y++){
       var src=map[hits[y].i];
-      if(src){ hits[y].d=src.r||src.d; hits[y].k=src.k; hits[y].v=src.v; }
+      if(src){ hits[y].k=src.k; hits[y].v=src.v; if(!hits[y].d) hits[y].d=src.r||src.d; }
     }
     searchState.hits=hits;
     renderHead(); render(true);
@@ -914,8 +1072,11 @@ function openDetail(tid){
     var video=(rec&&rec.video)||'';
     var city=(src&&src.c)||'';
     var views=(src&&src.v)||0;
+    var mt=(rec&&rec.m)||null;          // 分类信息：地区/年龄/外貌/消费/服务/详细地址
+    var rg=(rec&&rec.rg)||null;         // [省, 市]
+    var gi=(src&&src.g!==undefined)?src.g:-1;
     renderDetail({tid:tid,title:t,body:body,author:author,date:date,
-      images:imgs,video:video,city:city,views:views});
+      images:imgs,video:video,city:city,views:views,meta:mt,reg:rg,gi:gi});
   }).catch(function(e){
     renderDetailEmpty('读取失败：'+esc(e&&e.message));
   });
@@ -940,6 +1101,26 @@ function renderDetail(r){
      '<div><div class="nm">'+esc(r.author||'匿名用户')+'</div>'+
      '<div class="dt">'+esc(r.date||'')+(r.city?' · '+esc(r.city):'')+
      (r.views?' · '+fmtN(r.views)+' 浏览':'')+'</div></div></div>';
+  // ── 分类信息卡（还原原站 detail 页的分类字段区） ──
+  var mt=r.meta||{};
+  var rg=r.reg||null;
+  var areaTxt = rg&&rg[0] ? (rg[0]+(rg[1]&&rg[1]!==rg[0] ? ' · '+rg[1] : '')) : '';
+  var cells=[];
+  if(areaTxt) cells.push({k:'地区',v:areaTxt});
+  if(mt.ag) cells.push({k:'年龄',v:mt.ag});
+  if(mt.lk) cells.push({k:'外貌',v:mt.lk});
+  if(mt.pr) cells.push({k:'消费',v:'¥ '+mt.pr, cls:'pr'});
+  if(mt.sv) cells.push({k:'服务',v:mt.sv, wide:true});
+  if(mt.ad) cells.push({k:'地址',v:mt.ad, wide:true});
+  if(cells.length){
+    h+='<div class="infocard">';
+    cells.forEach(function(c){
+      h+='<div class="cell'+(c.wide?' wide':'')+'">'+
+         '<span class="k">'+c.k+'</span>'+
+         '<span class="v'+(c.cls?' '+c.cls:'')+'">'+esc(c.v)+'</span></div>';
+    });
+    h+='</div>';
+  }
   if(r.video){
     h+='<div class="vbox" id="dvbox"><div class="pb">▶</div></div>';
   }
